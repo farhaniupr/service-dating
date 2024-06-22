@@ -1,0 +1,38 @@
+env: "development"
+port: "3001"
+database:
+  host: "localhost:3306"
+  database: "test"
+  username: "root"
+  password: ""
+  maxIdleConns: 5
+  maxOpenConns: 20
+  connMaxLifeTime: "1h"
+  connMaxIdleTime: "10m"
+mongo:
+  host: "localhost:30717"
+  username: "admin"
+  password: "admin"
+jwt:
+  key: "abcdefghuajskeor"
+session:
+  accessTokenDuration: "10h"
+  refreshTokenDuration: "24h"
+  invitationTokenDuration: "10h"
+user:
+  email: ""
+  password: ""
+  emailSender: ""
+redis:
+  url: ""
+  username: ""
+  password: ""
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: ""
+  password: ""
+  sender: ""
+  retry: 3
+grpc:
+  port: "50050"
