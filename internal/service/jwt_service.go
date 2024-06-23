@@ -10,7 +10,7 @@ import (
 )
 
 type JWTAuthMethodService interface {
-	Authorize(tokenString string) (jwt.Claims, bool, error)
+	Authorize(tokenString string) (map[string]interface{}, bool, error)
 	CreateToken(dataReq model.User) (string, error)
 }
 
@@ -24,7 +24,7 @@ func ModuleJwtService(env library.Env) JWTAuthMethodService {
 	}
 }
 
-func (s JWTAuthService) Authorize(tokenString string) (jwt.Claims, bool, error) {
+func (s JWTAuthService) Authorize(tokenString string) (map[string]interface{}, bool, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		return []byte(s.env.Jwt.Key), nil
 	})
@@ -46,14 +46,16 @@ func (s JWTAuthService) CreateToken(dataReq model.User) (string, error) {
 	mySigningKey := []byte(s.env.Jwt.Key)
 
 	type MyCustomClaims struct {
-		Username string
-		Name     string
+		Phone  string `json:"phone"`
+		Name   string `json:"name"`
+		Gender string `json:"gender"`
 		jwt.RegisteredClaims
 	}
 
 	claims := MyCustomClaims{
 		dataReq.Phone,
 		dataReq.Name,
+		dataReq.Gender,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			Issuer:    "https://localhost:8080",

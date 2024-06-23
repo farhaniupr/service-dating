@@ -25,3 +25,14 @@ func ResponseInterfaceTotal(c echo.Context, statusServer int, res interface{}, m
 	})
 	return nil
 }
+
+func ResponseInterfaceError(c echo.Context, statusServer int, res interface{}, msg string) error {
+	c.JSON(statusServer, model.JsonResponsError{
+		RequestId:        c.Response().Header().Get(echo.HeaderXRequestID),
+		StatusCode:       statusServer,
+		ErrorCode:        statusServer,
+		ErrorMessage:     res,
+		DeveloperMessage: res,
+	})
+	return nil
+}

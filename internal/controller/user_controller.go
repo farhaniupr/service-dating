@@ -54,12 +54,6 @@ func (u UserController) ListUser(c echo.Context) error {
 		return response.ResponseInterfaceTotal(c, 500, err.Error(), constants.BadRequest, 0)
 	}
 
-	/**
-	*get data user from token jwt & how used
-	dataUser := c.Get("data_jwt")
-	dataUser.(jwt.MapClaims)["name"])
-	**/
-
 	result, total, err := u.userService.ListUser(c.Get("ctx").(context.Context), pagenation.Page, pagenation.Limit)
 	if err != nil {
 		return response.ResponseInterfaceTotal(c, 500, err.Error(), constants.InternalServerError, 0)
@@ -77,6 +71,11 @@ func (u UserController) UpdateUser(c echo.Context) error {
 	if err := c.Bind(&dataReq); err != nil {
 		library.Writelog(c, u.env, "err", err.Error())
 		return response.ResponseInterface(c, 500, err.Error(), constants.BadRequest)
+	}
+
+	if err := c.Validate(dataReq); err != nil {
+		library.Writelog(c, u.env, "err", err.Error())
+		return response.ResponseInterfaceError(c, http.StatusBadRequest, library.GetValueBetween(err.Error(), "Error:", "tag"), constants.BadRequest)
 	}
 
 	tx := c.Get(constants.DBTransaction).(*gorm.DB)
@@ -110,11 +109,7 @@ func (u UserController) Login(c echo.Context) error {
 		}
 	}
 
-	return response.ResponseInterface(c, 200, map[string]interface{}{
-		"phone": resultUser.Phone,
-		"name":  resultUser.Name,
-		"token": resultUser.Token,
-	}, "Login Success")
+	return response.ResponseInterface(c, 200, resultUser, "Login Success")
 }
 
 func (u UserController) Register(c echo.Context) error {
@@ -124,6 +119,11 @@ func (u UserController) Register(c echo.Context) error {
 	err := c.Bind(&dataReq)
 	if err != nil {
 		return response.ResponseInterface(c, http.StatusBadRequest, err.Error(), "Bad Request")
+	}
+
+	if err := c.Validate(dataReq); err != nil {
+		library.Writelog(c, u.env, "err", err.Error())
+		return response.ResponseInterfaceError(c, http.StatusBadRequest, library.GetValueBetween(err.Error(), "Error:", "tag"), constants.BadRequest)
 	}
 
 	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction).(*gorm.DB), dataReq)
@@ -171,20 +171,12 @@ func (u UserController) SwiftLeft(c echo.Context) error {
 	return response.ResponseInterface(c, 200, resultUser, "Register Success")
 }
 
-func (u UserController) Find(c echo.Context) error {
+func (u UserController) Finddate(c echo.Context) error {
 
-	var dataReq model.User
-
-	err := c.Bind(&dataReq)
+	resultUser, err := u.userService.FindDate(c.Request().Context(), c.Get("data_jwt").(map[string]interface{}))
 	if err != nil {
-		return response.ResponseInterface(c, http.StatusBadRequest, err.Error(), "Bad Request")
-	}
-
-	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction).(*gorm.DB), dataReq)
-	if err != nil {
-
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
 	}
 
-	return response.ResponseInterface(c, 200, resultUser, "Register Success")
+	return response.ResponseInterface(c, 200, resultUser, "Data UserDate")
 }

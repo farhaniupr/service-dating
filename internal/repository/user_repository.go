@@ -39,6 +39,22 @@ func (u UserRepository) DetailUser(phone string) (result model.User, err error) 
 		Select("*").Scan(&result).Error
 }
 
+func (u UserRepository) FindUser(phone, gender interface{}, except []string) (result model.User, err error) {
+
+	query := u.db.MysqlDB.Table("user").
+		Limit(1).
+		Order("rand()").
+		Where("phone != ?", phone).
+		Where("gender != ?", gender).
+		Select("*")
+
+	if len(except) > 0 {
+		query = query.Where("phone not in ?", except)
+	}
+
+	return result, query.Scan(&result).Error
+}
+
 func (u UserRepository) CreateUser(dataReq model.User) (result model.User, err error) {
 	return result, u.db.MysqlDB.Table("user").Create(&dataReq).Scan(&result).Error
 }

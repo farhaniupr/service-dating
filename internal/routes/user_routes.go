@@ -21,11 +21,11 @@ func (c UserRoutes) Setup() {
 	{
 
 		api.POST("login", c.userController.Login)
-		api.PUT("store", c.userController.Register, c.middlewareDB.HandlerDB())
+		api.POST("register", c.userController.Register, c.middlewareDB.HandlerDB())
 		api.GET("detail/:phone", c.userController.DetailUser, c.middlewareDB.HandlerDBContext(), c.middlewareJwt.Handler())
 		api.PATCH("update/:phone", c.userController.UpdateUser, c.middlewareDB.HandlerDB(), c.middlewareJwt.Handler())
 
-		api.GET("find", c.userController.Find, c.middlewareJwt.Handler())
+		api.GET("find-date", c.userController.Finddate, c.middlewareJwt.Handler())
 		api.GET("swift-right", c.userController.SwiftRight, c.middlewareJwt.Handler())
 		api.GET("swift-left", c.userController.SwiftLeft, c.middlewareJwt.Handler())
 

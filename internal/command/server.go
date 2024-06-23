@@ -37,6 +37,7 @@ func server(cmd *cobra.Command, args []string) {
 			route.Setup()
 			middleware.Setup()
 
+			_ = router.Echo.Start(":" + env.Port)
 		}),
 	)
 	ctx := context.Background()
