@@ -1,0 +1,696 @@
+{
+	"info": {
+		"_postman_id": "9e9babda-ab0e-4d38-abf0-ed983f630784",
+		"name": "Dating API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26397676",
+		"_collection_link": "https://cloudy-trinity-259030.postman.co/workspace/CBN-CLoud~54b94107-704f-45b1-b75a-63179632a7b6/collection/26397676-9e9babda-ab0e-4d38-abf0-ed983f630784?action=share&source=collection_link&creator=26397676"
+	},
+	"item": [
+		{
+			"name": "REGISTER",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function getRandomGender() {",
+							"    const genders = [\"male\", \"female\"];",
+							"    return genders[Math.floor(Math.random() * genders.length)];",
+							"}",
+							"console.log(getRandomGender());",
+							"pm.environment.set(\"gender\", getRandomGender());",
+							"",
+							"function getRandomDate(startDate, endDate) {",
+							"    const start = new Date(startDate).getTime();",
+							"    const end = new Date(endDate).getTime();",
+							"    const randomDate = new Date(start + Math.random() * (end - start));",
+							"    return randomDate.toISOString().split('T')[0]; // Return the date in YYYY-MM-DD format",
+							"}",
+							"",
+							"const startDate = '1980-01-01'; ",
+							"const endDate = '2005-01-01'; ",
+							"const randomPastDate = getRandomDate(startDate, endDate);",
+							"",
+							"pm.environment.set(\"randomPastDate\", randomPastDate);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\" : \"{{$randomFullName}}\",\n    \"email\" : \"{{$randomEmail}}\",\n    \"phone\" : \"{{$randomPhoneNumber}}\",\n    \"date_birth\" : \"{{randomPastDate}}\",\n    \"gender\" : \"{{gender}}\",\n    \"password\" : \"mypassword\",\n    \"url_photo\" : \"https://example.com/photo.jpg\",\n    \"about_me\" : \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n    \"city\" : \"{{$randomCity}}\",\n    \"country\" : \"{{$randomCountry}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/user/register",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "SUCCESS",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\" : \"{{$randomFullName}}\",\n    \"email\" : \"{{$randomEmail}}\",\n    \"phone\" : \"{{$randomPhoneNumber}}\",\n    \"date_birth\" : \"{{randomPastDate}}\",\n    \"gender\" : \"{{gender}}\",\n    \"password\" : \"mypassword\",\n    \"url_photo\" : \"https://example.com/photo.jpg\",\n    \"about_me\" : \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n    \"city\" : \"{{$randomCity}}\",\n    \"country\" : \"{{$randomCountry}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/user/register",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"register"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "vmomXqXaWJttckDucKFhzZkNEXXnqmmp"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 04:05:54 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "562"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"vmomXqXaWJttckDucKFhzZkNEXXnqmmp\",\n    \"status\": 201,\n    \"messages\": \"Register Success\",\n    \"data\": {\n        \"phone\": \"505-614-1470\",\n        \"email\": \"Alayna.Lubowitz77@hotmail.com\",\n        \"name\": \"Gerardo Ruecker\",\n        \"password\": \"$2a$14$c0pn1geTmFhOw4.jpsFqzORS2oDL3gbvth74SxBFUtd08pYy8x7Q6\",\n        \"url_photo\": \"https://example.com/photo.jpg\",\n        \"date_birth\": \"1982-01-07T00:00:00+07:00\",\n        \"gender\": \"male\",\n        \"about_me\": \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n        \"instragram_url\": \"\",\n        \"city\": \"Joshburgh\",\n        \"country\": \"Bhutan\",\n        \"subscription\": \"free\",\n        \"verify\": \"no\",\n        \"token\": \"\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "LOGIN",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"phone\" : \"216-253-6879\",\n    \"password\" : \"mypassword\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/user/login",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "SUCCESS",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\" : \"216-253-6879\",\n    \"password\" : \"mypassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/user/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "yusgLGwfiIfZWUnDQZEFisNxcGSHkeXX"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 04:08:24 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "684"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"yusgLGwfiIfZWUnDQZEFisNxcGSHkeXX\",\n    \"status\": 200,\n    \"messages\": \"Login Success\",\n    \"data\": {\n        \"phone\": \"216-253-6879\",\n        \"email\": \"Jean_Mosciski@hotmail.com\",\n        \"name\": \"Margaret Sauer\",\n        \"url_photo\": \"https://example.com/photo.jpg\",\n        \"date_birth\": \"1989-06-01T00:00:00+07:00\",\n        \"gender\": \"female\",\n        \"about_me\": \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n        \"instragram_url\": \"\",\n        \"city\": \"North Conradton\",\n        \"country\": \"Lebanon\",\n        \"subscription\": \"free\",\n        \"verify\": \"no\",\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6IjIxNi0yNTMtNjg3OSIsIk5hbWUiOiIiLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo4MDgwIiwiZXhwIjoxNzE5MjAyMTA0fQ.sY-iNj99FNjrJsfjpa7v4P51JLDwALNGy50Oe1VEJAo\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "FIND DATE / SWIFT LEFT",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var host = \"http://localhost:8080\"",
+							"var phone = \"216-253-6879\"",
+							"var password = \"mypassword\"",
+							"",
+							"const postRequest = {",
+							"  url: host + '/user/login',",
+							"  method: 'POST',",
+							"  timeout: 0,",
+							"  header: {",
+							"    \"content-type\": \"application/json\"",
+							"  },",
+							"  body: {",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify({ phone : phone, password : password })",
+							"    }",
+							"};",
+							"pm.sendRequest(postRequest, function (err, res) {",
+							"    var responseJson = res.json();",
+							"    pm.environment.set('token_date', responseJson['data']['token']);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token_date}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/user/find-date",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"user",
+						"find-date"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "LIMIT ACCOUNT FREE",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/user/find-date",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"find-date"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "wFHJQnsuAShyPNJUkuSoOkHGULqDFJkw"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 05:43:28 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "121"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"wFHJQnsuAShyPNJUkuSoOkHGULqDFJkw\",\n    \"status\": 100,\n    \"messages\": \"Out of Limit\",\n    \"data\": \"out of limit find date\"\n}"
+				},
+				{
+					"name": "SUCCESS FIND DATE",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/user/find-date",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"find-date"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "tcPgzIxkMlhwTJnnUyJOlEGYEKdszIsl"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 05:57:14 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "503"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"tcPgzIxkMlhwTJnnUyJOlEGYEKdszIsl\",\n    \"status\": 200,\n    \"messages\": \"Data User Date\",\n    \"data\": {\n        \"phone\": \"392-398-5548\",\n        \"email\": \"Colleen8@gmail.com\",\n        \"name\": \"Darren Baumbach\",\n        \"url_photo\": \"https://example.com/photo.jpg\",\n        \"date_birth\": \"1991-12-23T00:00:00+07:00\",\n        \"gender\": \"male\",\n        \"about_me\": \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n        \"instragram_url\": \"\",\n        \"city\": \"West Jamarcusshire\",\n        \"country\": \"Portugal\",\n        \"subscription\": \"free\",\n        \"verify\": \"no\",\n        \"status_like\": \"ready liked\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "SWIFT RIGHT",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var host = \"http://localhost:8080\"",
+							"var phone = \"216-253-6879\"",
+							"var password = \"mypassword\"",
+							"",
+							"const postRequest = {",
+							"  url: host + '/user/login',",
+							"  method: 'POST',",
+							"  timeout: 0,",
+							"  header: {",
+							"    \"content-type\": \"application/json\"",
+							"  },",
+							"  body: {",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify({ phone : phone, password : password })",
+							"    }",
+							"};",
+							"pm.sendRequest(postRequest, function (err, res) {",
+							"    var responseJson = res.json();",
+							"    pm.environment.set('token_date', responseJson['data']['token']);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token_date}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/user/swift-right/:phone_target",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"user",
+						"swift-right",
+						":phone_target"
+					],
+					"variable": [
+						{
+							"key": "phone_target",
+							"value": "505-614-1470"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "SUCCESS FIND DATE",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/user/find-date",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"find-date"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "tcPgzIxkMlhwTJnnUyJOlEGYEKdszIsl"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 05:57:14 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "503"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"tcPgzIxkMlhwTJnnUyJOlEGYEKdszIsl\",\n    \"status\": 200,\n    \"messages\": \"Data User Date\",\n    \"data\": {\n        \"phone\": \"392-398-5548\",\n        \"email\": \"Colleen8@gmail.com\",\n        \"name\": \"Darren Baumbach\",\n        \"url_photo\": \"https://example.com/photo.jpg\",\n        \"date_birth\": \"1991-12-23T00:00:00+07:00\",\n        \"gender\": \"male\",\n        \"about_me\": \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n        \"instragram_url\": \"\",\n        \"city\": \"West Jamarcusshire\",\n        \"country\": \"Portugal\",\n        \"subscription\": \"free\",\n        \"verify\": \"no\",\n        \"status_like\": \"ready liked\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Buy Premium",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var host = \"http://localhost:8080\"",
+							"var phone = \"216-253-6879\"",
+							"var password = \"mypassword\"",
+							"",
+							"const postRequest = {",
+							"  url: host + '/user/login',",
+							"  method: 'POST',",
+							"  timeout: 0,",
+							"  header: {",
+							"    \"content-type\": \"application/json\"",
+							"  },",
+							"  body: {",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify({ phone : phone, password : password })",
+							"    }",
+							"};",
+							"pm.sendRequest(postRequest, function (err, res) {",
+							"    var responseJson = res.json();",
+							"    pm.environment.set('token_date', responseJson['data']['token']);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token_date}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/user/buy-premium",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"user",
+						"buy-premium"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "SUCCESS",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/user/buy-premium",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"user",
+								"buy-premium"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "X-Request-Id",
+							"value": "UefvxLJyGmEbDJdMGPPPyixdrszEanci"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 23 Jun 2024 05:55:41 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "583"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"request_id\": \"UefvxLJyGmEbDJdMGPPPyixdrszEanci\",\n    \"status\": 200,\n    \"messages\": \"Success Upgrade Premium\",\n    \"data\": {\n        \"phone\": \"216-253-6879\",\n        \"email\": \"Jean_Mosciski@hotmail.com\",\n        \"name\": \"Margaret Sauer\",\n        \"password\": \"$2a$14$csbm1pk5NdlvjJqi1ZbdT.fYdnBqFqKJvDs.yP4ZRSPrZTlNAtAQ6\",\n        \"url_photo\": \"https://example.com/photo.jpg\",\n        \"date_birth\": \"1989-06-01T00:00:00+07:00\",\n        \"gender\": \"female\",\n        \"about_me\": \"Deleniti aut reiciendis id vitae corrupti. Perferendis blanditiis consequatur.\",\n        \"instragram_url\": \"\",\n        \"city\": \"North Conradton\",\n        \"country\": \"Lebanon\",\n        \"subscription\": \"premium\",\n        \"verify\": \"yes\",\n        \"status_like\": \"\"\n    }\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "gender",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "token_date",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
