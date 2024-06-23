@@ -20,6 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 type CustomValidator struct {
@@ -208,6 +209,7 @@ func TestRegister(t *testing.T) {
 	validator := validator.New()
 	validator.RegisterValidation("date", dateValidation)
 
+	validator.RegisterValidation("date", dateValidation)
 	mockContext.Validator = &CustomValidator{Validator: validator}
 
 	userController := UserController{
@@ -241,14 +243,11 @@ func TestRegister(t *testing.T) {
 			setupMock:        func() {},
 		},
 		{
-			name: "validation error",
-			userInput: fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s"}`,
-				generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail()),
+			name:             "validation error",
+			userInput:        fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s"}`, generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender()),
 			expectedStatus:   http.StatusBadRequest,
-			expectedResponse: "BadRequest",
+			expectedResponse: "required",
 			setupMock: func() {
-				validator.RegisterValidation("date", dateValidation)
-
 				mockContext.Validator = &CustomValidator{Validator: validator}
 			},
 		},
@@ -256,7 +255,7 @@ func TestRegister(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/user/register", bytes.NewReader([]byte(tt.userInput)))
+			req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewReader([]byte(tt.userInput)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			c := mockContext.NewContext(req, rec)
@@ -270,6 +269,209 @@ func TestRegister(t *testing.T) {
 			}
 
 			mockUserService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestUserController_SwiftRight(t *testing.T) {
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/swift-right?phone_target=123456789", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("phone_target")
+	c.SetParamValues("123456789")
+	db := &gorm.DB{}
+	c.Set(constants.DBTransaction, db)
+	dataJwt := map[string]interface{}{"user_id": "123"}
+	c.Set("data_jwt", dataJwt)
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockUserService := new(MockUserService)
+
+	userController := UserController{
+		userService: mockUserService,
+	}
+
+	// Setting context data
+
+	tests := []struct {
+		name       string
+		ctx        context.Context
+		setupMocks func()
+		wantErr    bool
+		wantStatus int
+	}{
+		{
+			name:       "Success Liked and Find New Date",
+			ctx:        req.Context(),
+			wantErr:    false,
+			wantStatus: 200,
+			setupMocks: func() {
+				mockUserService.On("SwiftRight", c.Request().Context(),
+					db,
+					dataJwt,
+					"123456789").Return(model.User{}, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMocks()
+			err := userController.SwiftRight(c)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserController.SwiftRight() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				httpError, ok := err.(*echo.HTTPError)
+				if !ok {
+					t.Errorf("Expected echo.HTTPError, got %T", err)
+				}
+				assert.Equal(t, tt.wantStatus, http.StatusUnprocessableEntity)
+				assert.Equal(t, "Internal Server Error", httpError.Message)
+			} else {
+				assert.Equal(t, tt.wantStatus, rec.Code)
+				assert.Contains(t, rec.Body.String(), "Success Liked and Find New Date")
+			}
+		})
+	}
+}
+
+func TestUserController_SwiftLeft(t *testing.T) {
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/find-date", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	db := &gorm.DB{}
+	c.Set(constants.DBTransaction, db)
+	dataJwt := map[string]interface{}{"phone": "216-253-6879"}
+	c.Set("data_jwt", dataJwt)
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockUserService := new(MockUserService)
+
+	userController := UserController{
+		userService: mockUserService,
+	}
+
+	tests := []struct {
+		name       string
+		ctx        context.Context
+		setupMocks func()
+		wantErr    bool
+		wantStatus int
+	}{
+
+		// ctx context.Context, jwtUser map[string]interface{}
+		{
+			name:       "Data User Date",
+			ctx:        req.Context(),
+			wantErr:    false,
+			wantStatus: 200,
+			setupMocks: func() {
+				mockUserService.On("FindDate",
+					c.Request().Context(),
+					dataJwt).Return(model.User{}, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMocks()
+			err := userController.Finddate(c)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserController.FindDate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				httpError, ok := err.(*echo.HTTPError)
+				if !ok {
+					t.Errorf("Expected echo.HTTPError, got %T", err)
+				}
+				assert.Equal(t, tt.wantStatus, http.StatusUnprocessableEntity)
+				assert.Equal(t, "Internal Server Error", httpError.Message)
+			} else {
+				assert.Equal(t, tt.wantStatus, rec.Code)
+				assert.Contains(t, rec.Body.String(), "Data User Date")
+			}
+		})
+	}
+}
+
+func TestUserController_BuyPremium(t *testing.T) {
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/buy-premium", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	db := &gorm.DB{}
+	c.Set(constants.DBTransaction, db)
+	dataJwt := map[string]interface{}{"phone": "216-253-6879"}
+	c.Set("data_jwt", dataJwt)
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockUserService := new(MockUserService)
+
+	userController := UserController{
+		userService: mockUserService,
+	}
+
+	tests := []struct {
+		name       string
+		ctx        context.Context
+		setupMocks func()
+		wantErr    bool
+		wantStatus int
+	}{
+
+		{
+			name:       "Success Upgrade Premium",
+			ctx:        req.Context(),
+			wantErr:    false,
+			wantStatus: 200,
+			setupMocks: func() {
+				mockUserService.On("BuyPremium",
+					db,
+					dataJwt).Return(model.User{}, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMocks()
+			err := userController.BuyPremium(c)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserController.BuyPremium() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				httpError, ok := err.(*echo.HTTPError)
+				if !ok {
+					t.Errorf("Expected echo.HTTPError, got %T", err)
+				}
+				assert.Equal(t, tt.wantStatus, http.StatusUnprocessableEntity)
+				assert.Equal(t, "Internal Server Error", httpError.Message)
+			} else {
+				assert.Equal(t, tt.wantStatus, rec.Code)
+				assert.Contains(t, rec.Body.String(), "Success Upgrade Premium")
+			}
 		})
 	}
 }
