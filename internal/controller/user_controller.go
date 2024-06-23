@@ -153,28 +153,15 @@ func (u UserController) SwiftRight(c echo.Context) error {
 	return response.ResponseInterface(c, 200, resultUser, "Register Success")
 }
 
-func (u UserController) SwiftLeft(c echo.Context) error {
-
-	var dataReq model.User
-
-	err := c.Bind(&dataReq)
-	if err != nil {
-		return response.ResponseInterface(c, http.StatusBadRequest, err.Error(), "Bad Request")
-	}
-
-	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction).(*gorm.DB), dataReq)
-	if err != nil {
-
-		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
-	}
-
-	return response.ResponseInterface(c, 200, resultUser, "Register Success")
-}
-
 func (u UserController) Finddate(c echo.Context) error {
 
 	resultUser, err := u.userService.FindDate(c.Request().Context(), c.Get("data_jwt").(map[string]interface{}))
 	if err != nil {
+		if err.Error() == "out of limit find date" {
+			return response.ResponseInterface(c, http.StatusContinue, err.Error(), "Out of Limit")
+		} else if err.Error() == "account date is out of stock" {
+			return response.ResponseInterface(c, http.StatusNoContent, err.Error(), "No Content")
+		}
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
 	}
 

@@ -3,6 +3,7 @@ module github.com/farhaniupr/dating-api
 go 1.21.1
 
 require (
+	github.com/farhaniupr/convertgo v0.0.0-20230717064917-2cab75398337
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.0

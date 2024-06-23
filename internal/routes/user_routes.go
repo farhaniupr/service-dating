@@ -27,7 +27,7 @@ func (c UserRoutes) Setup() {
 
 		api.GET("find-date", c.userController.Finddate, c.middlewareJwt.Handler())
 		api.GET("swift-right", c.userController.SwiftRight, c.middlewareJwt.Handler())
-		api.GET("swift-left", c.userController.SwiftLeft, c.middlewareJwt.Handler())
+		api.GET("swift-left", c.userController.Finddate, c.middlewareJwt.Handler())
 
 	}
 }
