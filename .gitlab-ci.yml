@@ -1,0 +1,49 @@
+stages:
+  - build-container
+  - deploy-cluster
+
+build-container:
+  stage: build-container
+  tags:
+    - testing
+  image: docker:20.10.10
+  services:
+    - docker:20.10.10-dind
+  only:
+    - main
+  before_script:
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
+  script:
+    - touch config.yml
+    - echo -e "$env" > config.yml
+    - docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA} .
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+
+deploy-staging:
+  stage: deploy-cluster
+  tags:
+    - testing
+  image: docker:20.10.10
+  only:
+    - main
+  before_script:
+    - apk add sshpass
+    - "command -v ssh-agent >/dev/null || ( apk add --update openssh )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa.pub
+    - ssh-keyscan $JUMPHOST_IPADDRESS >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - chmod 600 ~/.ssh/id_rsa.pub
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa.pub
+    - ssh-keyscan -H "$JUMPHOST_IPADDRESS" >> ~/.ssh/known_hosts
+    - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+    - chmod 600 ~/.ssh/authorized_keys
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
+
+  script:
+    - sshpass -p "$JUMPHOST_PASSWORD" ssh -o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p -q $JUMPHOST_USER@$JUMPHOST_IPADDRESS" $USER@$IP_SERVER_SWARM "echo '$sh' > /root/swarm.sh && bash /root/swarm.sh ${CI_REGISTRY_IMAGE}:dev-${CI_COMMIT_SHORT_SHA} && rm /root/swarm.sh"
+  allow_failure: false

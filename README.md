@@ -40,12 +40,30 @@ Clean arch echo, with structure repository, service(use case), model (entity), a
     This folder for store constant, model structure application, response application
 
 
+## List Library Application
+
+| Library                            | 
+| ---------------------------------- | 
+| Mysql Driver Gorm                  |
+| Logger with Zap Logger             |
+| Echo Framework                     |
+| Middleware JWT                     |
+| Middleware Request ID Echo         |
+| Middleware Database Transaction    |
+| Depency Injection Go Uber Fx       |
+| Viper Config yaml                  |
+| Redis                              |
+
 ## How To Install & Run
 
 -   rename config.yml.example -> config.yml
 -   go mod tidy
 -   running : go run . s
 -   build : go build .
+
+## How To Build Docker Application 
+-   docker build -t dating-api .
+-   docker run -d -p 8080:8080 --name dating-api dating-api:latest
 
 ## How To Run Unit Testing
 -   go mod tidy
