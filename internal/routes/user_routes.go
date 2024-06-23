@@ -25,9 +25,11 @@ func (c UserRoutes) Setup() {
 		api.GET("detail/:phone", c.userController.DetailUser, c.middlewareDB.HandlerDBContext(), c.middlewareJwt.Handler())
 		api.PATCH("update/:phone", c.userController.UpdateUser, c.middlewareDB.HandlerDB(), c.middlewareJwt.Handler())
 
-		api.GET("find-date", c.userController.Finddate, c.middlewareJwt.Handler())
-		api.GET("swift-right", c.userController.SwiftRight, c.middlewareJwt.Handler())
-		api.GET("swift-left", c.userController.Finddate, c.middlewareJwt.Handler())
+		api.GET("find-date", c.userController.Finddate, c.middlewareJwt.Handler(), c.middlewareJwt.Handler())
+		api.GET("swift-right/:phone_target", c.userController.SwiftRight, c.middlewareDB.HandlerDB(), c.middlewareJwt.Handler())
+		api.GET("swift-left", c.userController.Finddate, c.middlewareJwt.Handler(), c.middlewareJwt.Handler())
+
+		api.POST("buy-premium", c.userController.BuyPremium, c.middlewareDB.HandlerDB(), c.middlewareJwt.Handler())
 
 	}
 }

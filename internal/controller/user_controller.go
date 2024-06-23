@@ -137,20 +137,15 @@ func (u UserController) Register(c echo.Context) error {
 
 func (u UserController) SwiftRight(c echo.Context) error {
 
-	var dataReq model.User
+	phoneTarget := c.Param("phone_target")
 
-	err := c.Bind(&dataReq)
-	if err != nil {
-		return response.ResponseInterface(c, http.StatusBadRequest, err.Error(), "Bad Request")
-	}
-
-	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction).(*gorm.DB), dataReq)
+	result, err := u.userService.SwiftRight(c.Request().Context(), c.Get(constants.DBTransaction).(*gorm.DB), c.Get("data_jwt").(map[string]interface{}), phoneTarget)
 	if err != nil {
 
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
 	}
 
-	return response.ResponseInterface(c, 200, resultUser, "Register Success")
+	return response.ResponseInterface(c, 200, result, "Success Liked and Find New Date")
 }
 
 func (u UserController) Finddate(c echo.Context) error {
@@ -165,5 +160,15 @@ func (u UserController) Finddate(c echo.Context) error {
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
 	}
 
-	return response.ResponseInterface(c, 200, resultUser, "Data UserDate")
+	return response.ResponseInterface(c, 200, resultUser, "Data User Date")
+}
+
+func (u UserController) BuyPremium(c echo.Context) error {
+
+	resultUser, err := u.userService.BuyPremium(c.Get(constants.DBTransaction).(*gorm.DB), c.Get("data_jwt").(map[string]interface{}))
+	if err != nil {
+		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
+	}
+
+	return response.ResponseInterface(c, 200, resultUser, "Success Upgrade Premium")
 }

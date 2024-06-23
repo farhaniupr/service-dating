@@ -23,20 +23,23 @@ type UserMethodService interface {
 	DeleteUser(ctx context.Context, dataReq model.User, id string) (result []interface{}, err error)
 	FindDate(ctx context.Context, jwtUser map[string]interface{}) (result model.User, err error)
 	SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phone string) (result model.User, err error)
+	BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (result model.User, err error)
 }
 
 type UserService struct {
-	env            library.Env
-	repositoryUser repository.UserRepository
-	jwtService     JWTAuthMethodService
-	commonHelper   helper.CommonHelper
-	encryptHelper  helper.EcncryptHelper
-	redisCrud      eksternal.RedisEksternal
+	env                 library.Env
+	repositoryUser      repository.UserRepository
+	repositoryUserLiked repository.UserLikedRepository
+	jwtService          JWTAuthMethodService
+	commonHelper        helper.CommonHelper
+	encryptHelper       helper.EcncryptHelper
+	redisCrud           eksternal.RedisEksternal
 }
 
 func ModuleUserService(
 	env library.Env,
 	repositoryUser repository.UserRepository,
+	repositoryUserLiked repository.UserLikedRepository,
 	commonHelper helper.CommonHelper,
 	jwtService JWTAuthMethodService,
 	encryptHelper helper.EcncryptHelper,
@@ -44,12 +47,13 @@ func ModuleUserService(
 
 ) UserMethodService {
 	return UserService{
-		env:            env,
-		repositoryUser: repositoryUser,
-		commonHelper:   commonHelper,
-		jwtService:     jwtService,
-		encryptHelper:  encryptHelper,
-		redisCrud:      redisCrud,
+		env:                 env,
+		repositoryUser:      repositoryUser,
+		commonHelper:        commonHelper,
+		jwtService:          jwtService,
+		encryptHelper:       encryptHelper,
+		redisCrud:           redisCrud,
+		repositoryUserLiked: repositoryUserLiked,
 	}
 }
 
@@ -164,9 +168,49 @@ func (u UserService) ListUser(ctx context.Context, page, limit int) (result []mo
 	return u.repositoryUser.WithContext(ctx).ListUser(limit, page)
 }
 
-func (u UserService) SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phone string) (result model.User, err error) {
+func (u UserService) SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phoneTarget string) (result model.User, err error) {
 
-	result, err = u.FindDate(ctx, jwtUser)
+	// check if already liked
+	resutlCheck, err := u.repositoryUserLiked.WithContext(ctx).Detail(
+		model.UserLiked{
+			Phone:      convertgo.ItString(jwtUser["phone"]),
+			PhoneLiked: phoneTarget,
+		})
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if resutlCheck.Id > 0 {
+		return u.FindDate(ctx, jwtUser)
+	} else {
+		// store
+		_, err = u.repositoryUserLiked.WithTransaction(tx).Create(model.UserLiked{Phone: convertgo.ItString(jwtUser["phone"]), PhoneLiked: phoneTarget})
+		if err != nil {
+			return model.User{}, err
+		}
+
+		return u.FindDate(ctx, jwtUser)
+	}
+
+}
+
+func (u UserService) BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (result model.User, err error) {
+
+	// check subscription user
+	resultDetail, err := u.repositoryUser.DetailUser(convertgo.ItString(jwtUser["phone"]))
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if resultDetail.Subscription != "premium" {
+		// upgrade premium
+		result, _, err = u.repositoryUser.WithTransaction(tx).UpdateUser(model.User{Subscription: "premium", Verify: "yes"}, convertgo.ItString(jwtUser["phone"]))
+		if err != nil {
+			return model.User{}, err
+		}
+	} else {
+		return model.User{}, errors.New("already premium")
+	}
 
 	return result, err
 }

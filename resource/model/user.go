@@ -21,6 +21,7 @@ type User struct {
 	UserLiked      UserLiked   `json:"-" gorm:"foreignKey:phone;references:phone"`
 	UserSetting    UserSetting `json:"-" gorm:"foreignKey:phone;references:phone"`
 	UserLikedPhone UserLiked   `json:"-" gorm:"foreignKey:phone_liked;references:phone"`
+	StatusLike     string      `json:"status_like"`
 	Token          string      `json:"token,omitempty" gorm:"-"`
 }
 

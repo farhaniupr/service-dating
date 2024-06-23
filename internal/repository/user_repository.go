@@ -35,32 +35,36 @@ func (u UserRepository) WithContext(ctx context.Context) UserRepository {
 }
 
 func (u UserRepository) DetailUser(phone string) (result model.User, err error) {
-	return result, u.db.MysqlDB.Table("user").Where("phone = ?", phone).
+	return result, u.db.MysqlDB.Debug().Table("user").Where("phone = ?", phone).
 		Select("*").Scan(&result).Error
 }
 
 func (u UserRepository) FindUser(phone, gender interface{}, except []string) (result model.User, err error) {
 
-	query := u.db.MysqlDB.Table("user").
+	query := u.db.MysqlDB.Table("user u").
+		Joins("left join user_liked us on u.phone = us.phone_liked and us.phone = ?", phone).
 		Limit(1).
 		Order("rand()").
-		Where("phone != ?", phone).
-		Where("gender != ?", gender).
-		Select("*")
+		Where("u.phone != ?", phone).
+		Where("u.gender != ?", gender).
+		Select("u.*, case when us.id > 0 then 'liked' else  'ready liked' end as 'status_like'")
 
 	if len(except) > 0 {
-		query = query.Where("phone not in ?", except)
+		query = query.Where("u.phone not in ?", except)
 	}
 
 	return result, query.Scan(&result).Error
 }
 
 func (u UserRepository) CreateUser(dataReq model.User) (result model.User, err error) {
-	return result, u.db.MysqlDB.Table("user").Create(&dataReq).Scan(&result).Error
+	return result, u.db.MysqlDB.
+		Omit("status_like").
+		Create(&dataReq).Scan(&result).Error
 }
 
 func (u UserRepository) UpdateUser(dataReq model.User, phone string) (result model.User, rowsAffected int, err error) {
 	query := u.db.MysqlDB.Table("user").
+		Omit("status_like").
 		Where("phone = ?", phone).Updates(&dataReq).Scan(&result)
 
 	return result, int(query.RowsAffected), err
