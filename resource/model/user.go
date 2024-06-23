@@ -12,8 +12,8 @@ type User struct {
 	Gender         string      `json:"gender" gorm:"type:enum('male','female','')" validate:"required"`
 	AboutMe        string      `json:"about_me" gorm:"type:longtext"`
 	InstragramUrl  string      `json:"instragram_url" gorm:"type:varchar(255)"`
-	City           string      `json:"city" gorm:"type:varchar(255)" validate:"required"`
-	Country        string      `json:"country" gorm:"type:varchar(255)" validate:"required"`
+	City           string      `json:"city" gorm:"type:varchar(255)"`
+	Country        string      `json:"country" gorm:"type:varchar(255)"`
 	Subscription   string      `json:"subscription" gorm:"type:enum('free','premium') default 'free'"`
 	Verify         string      `json:"verify" gorm:"type:enum('yes','no') default 'no'"`
 	CreatedAt      int64       `json:"-" gorm:"type:bigint"`

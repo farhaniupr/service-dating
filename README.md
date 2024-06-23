@@ -42,6 +42,12 @@ Clean arch echo, with structure repository, service(use case), model (entity), a
 
 ## How To Install & Run
 
-- go mod tidy
-- running : go run . s
-- build : go build .
+-   rename config.yml.example -> config.yml
+-   go mod tidy
+-   running : go run . s
+-   build : go build .
+
+## How To Run Unit Testing
+-   go mod tidy
+-   go test -v ./internal/controller
+

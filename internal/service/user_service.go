@@ -15,12 +15,11 @@ import (
 )
 
 type UserMethodService interface {
-	Login(context context.Context, dataReq model.User) (result bool, resultUser model.User, err error)
+	Login(context context.Context, dataReq model.User) (resultUser model.User, err error)
 	DetailUser(ctx context.Context, id string) (result model.User, err error)
 	ListUser(ctx context.Context, page, limit int) (result []model.User, total int64, err error)
 	StoreUser(tx *gorm.DB, dataReq model.User) (result model.User, err error)
 	UpdateUser(tx *gorm.DB, dataReq model.User, id string) (result model.User, err error)
-	DeleteUser(ctx context.Context, dataReq model.User, id string) (result []interface{}, err error)
 	FindDate(ctx context.Context, jwtUser map[string]interface{}) (result model.User, err error)
 	SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phone string) (result model.User, err error)
 	BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (result model.User, err error)
@@ -57,30 +56,30 @@ func ModuleUserService(
 	}
 }
 
-func (u UserService) Login(context context.Context, dataReq model.User) (result bool, resultUser model.User, err error) {
+func (u UserService) Login(context context.Context, dataReq model.User) (resultUser model.User, err error) {
 
 	resultUser, err = u.repositoryUser.WithContext(context).DetailUser(dataReq.Phone)
 	if err != nil {
-		return false, model.User{}, err
+		return model.User{}, err
 	}
 
 	if resultUser.Phone == "" {
-		return false, model.User{}, errors.New("account not found")
+		return model.User{}, errors.New("account not found")
 	}
 
 	if u.encryptHelper.CheckPassword(resultUser.Password, dataReq.Password) {
 		token, err := u.jwtService.CreateToken(resultUser)
 		if err != nil {
-			return false, model.User{}, err
+			return model.User{}, err
 		}
 
 		resultUser.Token = token
 		resultUser.Password = ""
 
-		return true, resultUser, nil
+		return resultUser, nil
 	}
 
-	return false, model.User{}, errors.New("password is wrong")
+	return model.User{}, errors.New("password is wrong")
 }
 
 func (u UserService) DetailUser(ctx context.Context, phone string) (user model.User, err error) {
@@ -148,17 +147,6 @@ func (u UserService) UpdateUser(tx *gorm.DB, dataReq model.User, id string) (use
 
 	if rowAffected == 0 {
 		err = errors.New("data has not updated")
-	}
-
-	return user, err
-}
-
-func (u UserService) DeleteUser(ctx context.Context, dataReq model.User, id string) (user []interface{}, err error) {
-
-	_, rowAffected, err := u.repositoryUser.WithContext(ctx).DeleteUser(dataReq, id)
-
-	if rowAffected == 0 {
-		err = errors.New("data has not deleted")
 	}
 
 	return user, err

@@ -37,7 +37,7 @@ func (u UserController) DetailUser(c echo.Context) error {
 
 	id := c.Param("phone")
 
-	result, err := u.userService.DetailUser(c.Get("ctx").(context.Context), id)
+	result, err := u.userService.DetailUser(c.Request().Context(), id)
 	if err != nil {
 		library.Writelog(c, u.env, "err", err.Error())
 		return response.ResponseInterface(c, 500, err.Error(), constants.InternalServerError)
@@ -97,7 +97,7 @@ func (u UserController) Login(c echo.Context) error {
 		return response.ResponseInterface(c, http.StatusBadRequest, err.Error(), "Bad Request")
 	}
 
-	_, resultUser, err := u.userService.Login(c.Request().Context(), dataReq)
+	resultUser, err := u.userService.Login(c.Request().Context(), dataReq)
 	if err != nil {
 		switch err.Error() {
 		case "account not found":
