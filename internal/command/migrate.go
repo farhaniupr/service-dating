@@ -25,7 +25,7 @@ func migrate(cmd *cobra.Command, args []string) {
 			db library.Database,
 		) {
 			if err := db.MysqlDB.WithContext(context.Background()).
-				AutoMigrate(&model.User{}, &model.UserSetting{}, &model.UserLiked{}); err != nil {
+				AutoMigrate(&model.User{}, &model.UserLiked{}); err != nil {
 				library.Writelog(context.Background(), env, "err", err.Error())
 			}
 

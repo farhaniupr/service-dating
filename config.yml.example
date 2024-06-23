@@ -2,7 +2,7 @@ env: "development"
 port: "8080"
 database:
   host: "localhost:3306"
-  database: "test"
+  database: "dating_app"
   username: "root"
   password: ""
   maxIdleConns: 5
@@ -15,15 +15,3 @@ redis:
   password: ""
 jwt:
   key: "abcdefghuajskeor"
-session:
-  accessTokenDuration: "10h"
-  refreshTokenDuration: "24h"
-  invitationTokenDuration: "10h"
-user:
-  email: ""
-  password: ""
-  emailSender: ""
-redis:
-  url: ""
-  username: ""
-  password: ""

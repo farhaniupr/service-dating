@@ -58,6 +58,7 @@ Clean arch echo, with structure repository, service(use case), model (entity), a
 
 -   rename config.yml.example -> config.yml
 -   go mod tidy
+-   migrate data : go run . m
 -   running : go run . s
 -   build : go build .
 
