@@ -11,7 +11,6 @@ import (
 	"github.com/farhaniupr/dating-api/resource/model"
 	"github.com/farhaniupr/dating-api/resource/response"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 type UserController struct {
@@ -78,7 +77,7 @@ func (u UserController) UpdateUser(c echo.Context) error {
 		return response.ResponseInterfaceError(c, http.StatusBadRequest, library.GetValueBetween(err.Error(), "Error:", "tag"), constants.BadRequest)
 	}
 
-	tx := c.Get(constants.DBTransaction).(*gorm.DB)
+	tx := c.Get(constants.DBTransaction)
 
 	result, err := u.userService.UpdateUser(tx, dataReq, id)
 	if err != nil {
@@ -126,7 +125,7 @@ func (u UserController) Register(c echo.Context) error {
 		return response.ResponseInterfaceError(c, http.StatusBadRequest, library.GetValueBetween(err.Error(), "Error:", "tag"), constants.BadRequest)
 	}
 
-	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction).(*gorm.DB), dataReq)
+	resultUser, err := u.userService.StoreUser(c.Get(constants.DBTransaction), dataReq)
 	if err != nil {
 
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
@@ -139,7 +138,7 @@ func (u UserController) SwiftRight(c echo.Context) error {
 
 	phoneTarget := c.Param("phone_target")
 
-	result, err := u.userService.SwiftRight(c.Request().Context(), c.Get(constants.DBTransaction).(*gorm.DB), c.Get("data_jwt").(map[string]interface{}), phoneTarget)
+	result, err := u.userService.SwiftRight(c.Request().Context(), c.Get(constants.DBTransaction), c.Get("data_jwt").(map[string]interface{}), phoneTarget)
 	if err != nil {
 
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
@@ -165,7 +164,7 @@ func (u UserController) Finddate(c echo.Context) error {
 
 func (u UserController) BuyPremium(c echo.Context) error {
 
-	resultUser, err := u.userService.BuyPremium(c.Get(constants.DBTransaction).(*gorm.DB), c.Get("data_jwt").(map[string]interface{}))
+	resultUser, err := u.userService.BuyPremium(c.Get(constants.DBTransaction), c.Get("data_jwt").(map[string]interface{}))
 	if err != nil {
 		return response.ResponseInterface(c, http.StatusInternalServerError, err.Error(), "Internal Server Error")
 	}

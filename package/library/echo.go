@@ -15,11 +15,11 @@ type RequestHandler struct {
 }
 
 type CustomValidator struct {
-	validator *validator.Validate
+	Validator *validator.Validate
 }
 
 func (cv *CustomValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
+	return cv.Validator.Struct(i)
 }
 
 func dateValidation(fl validator.FieldLevel) bool {
@@ -40,7 +40,7 @@ func ModuleEcho() RequestHandler {
 		log.Fatal(err.Error())
 	}
 
-	engine.Validator = &CustomValidator{validator: validator}
+	engine.Validator = &CustomValidator{Validator: validator}
 
 	return RequestHandler{Echo: engine}
 }

@@ -18,11 +18,11 @@ type UserMethodService interface {
 	Login(context context.Context, dataReq model.User) (resultUser model.User, err error)
 	DetailUser(ctx context.Context, id string) (result model.User, err error)
 	ListUser(ctx context.Context, page, limit int) (result []model.User, total int64, err error)
-	StoreUser(tx *gorm.DB, dataReq model.User) (result model.User, err error)
-	UpdateUser(tx *gorm.DB, dataReq model.User, id string) (result model.User, err error)
+	StoreUser(tx interface{}, dataReq model.User) (result model.User, err error)
+	UpdateUser(tx interface{}, dataReq model.User, id string) (result model.User, err error)
 	FindDate(ctx context.Context, jwtUser map[string]interface{}) (result model.User, err error)
-	SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phone string) (result model.User, err error)
-	BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (result model.User, err error)
+	SwiftRight(ctx context.Context, tx interface{}, jwtUser map[string]interface{}, phone string) (result model.User, err error)
+	BuyPremium(tx interface{}, jwtUser map[string]interface{}) (result model.User, err error)
 }
 
 type UserService struct {
@@ -128,7 +128,7 @@ func (u UserService) FindDate(ctx context.Context, jwtUser map[string]interface{
 	return user, err
 }
 
-func (u UserService) StoreUser(tx *gorm.DB, dataReq model.User) (user model.User, err error) {
+func (u UserService) StoreUser(tx interface{}, dataReq model.User) (user model.User, err error) {
 
 	dataReq.Subscription = "free"
 	dataReq.Verify = "no"
@@ -138,12 +138,12 @@ func (u UserService) StoreUser(tx *gorm.DB, dataReq model.User) (user model.User
 		return model.User{}, err
 	}
 
-	return u.repositoryUser.WithTransaction(tx).CreateUser(dataReq)
+	return u.repositoryUser.WithTransaction(tx.(*gorm.DB)).CreateUser(dataReq)
 }
 
-func (u UserService) UpdateUser(tx *gorm.DB, dataReq model.User, id string) (user model.User, err error) {
+func (u UserService) UpdateUser(tx interface{}, dataReq model.User, id string) (user model.User, err error) {
 
-	user, rowAffected, err := u.repositoryUser.WithTransaction(tx).UpdateUser(dataReq, id)
+	user, rowAffected, err := u.repositoryUser.WithTransaction(tx.(*gorm.DB)).UpdateUser(dataReq, id)
 
 	if rowAffected == 0 {
 		err = errors.New("data has not updated")
@@ -156,7 +156,7 @@ func (u UserService) ListUser(ctx context.Context, page, limit int) (result []mo
 	return u.repositoryUser.WithContext(ctx).ListUser(limit, page)
 }
 
-func (u UserService) SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[string]interface{}, phoneTarget string) (result model.User, err error) {
+func (u UserService) SwiftRight(ctx context.Context, tx interface{}, jwtUser map[string]interface{}, phoneTarget string) (result model.User, err error) {
 
 	// check if already liked
 	resutlCheck, err := u.repositoryUserLiked.WithContext(ctx).Detail(
@@ -172,7 +172,7 @@ func (u UserService) SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[st
 		return u.FindDate(ctx, jwtUser)
 	} else {
 		// store
-		_, err = u.repositoryUserLiked.WithTransaction(tx).Create(model.UserLiked{Phone: convertgo.ItString(jwtUser["phone"]), PhoneLiked: phoneTarget})
+		_, err = u.repositoryUserLiked.WithTransaction(tx.(*gorm.DB)).Create(model.UserLiked{Phone: convertgo.ItString(jwtUser["phone"]), PhoneLiked: phoneTarget})
 		if err != nil {
 			return model.User{}, err
 		}
@@ -182,7 +182,7 @@ func (u UserService) SwiftRight(ctx context.Context, tx *gorm.DB, jwtUser map[st
 
 }
 
-func (u UserService) BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (result model.User, err error) {
+func (u UserService) BuyPremium(tx interface{}, jwtUser map[string]interface{}) (result model.User, err error) {
 
 	// check subscription user
 	resultDetail, err := u.repositoryUser.DetailUser(convertgo.ItString(jwtUser["phone"]))
@@ -192,7 +192,7 @@ func (u UserService) BuyPremium(tx *gorm.DB, jwtUser map[string]interface{}) (re
 
 	if resultDetail.Subscription != "premium" {
 		// upgrade premium
-		result, _, err = u.repositoryUser.WithTransaction(tx).UpdateUser(model.User{Subscription: "premium", Verify: "yes"}, convertgo.ItString(jwtUser["phone"]))
+		result, _, err = u.repositoryUser.WithTransaction(tx.(*gorm.DB)).UpdateUser(model.User{Subscription: "premium", Verify: "yes"}, convertgo.ItString(jwtUser["phone"]))
 		if err != nil {
 			return model.User{}, err
 		}

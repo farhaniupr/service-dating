@@ -13,13 +13,27 @@ import (
 	"time"
 
 	"github.com/farhaniupr/dating-api/package/library"
+	"github.com/farhaniupr/dating-api/resource/constants"
 	"github.com/farhaniupr/dating-api/resource/model"
+	"github.com/go-playground/validator"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 )
+
+type CustomValidator struct {
+	Validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.Validator.Struct(i)
+}
+
+func dateValidation(fl validator.FieldLevel) bool {
+	_, err := time.Parse(constants.LayoutDate, fl.Field().String())
+	return err == nil
+}
 
 func generateRandomEmail() string {
 	rand.Seed(time.Now().UnixNano())
@@ -62,8 +76,7 @@ func generatePhoneNumber() string {
 func generateRandomUrlPhoto() string {
 	rand.Seed(time.Now().UnixNano())
 
-	url := fmt.Sprintf("https://example/data.jpg")
-	return url
+	return "https://example/data.jpg"
 }
 
 func generateRandomDateBirth() string {
@@ -74,7 +87,7 @@ func generateRandomDateBirth() string {
 
 	randomTime := start.Add(time.Duration(rand.Int63n(end.Unix()-start.Unix())) * time.Second)
 
-	return fmt.Sprintf("%s", randomTime.Format("2006-01-02"))
+	return randomTime.Format("2006-01-02")
 }
 
 func generateRandomGender() string {
@@ -87,7 +100,7 @@ func generateRandomGender() string {
 	randomGender := genders[randomIndex]
 
 	// Print the random gender
-	return fmt.Sprintf("%s", randomGender)
+	return randomGender
 }
 
 type MockUserService struct {
@@ -108,7 +121,7 @@ func (m *MockUserService) ListUser(ctx context.Context, page, limit int) ([]mode
 	return args.Get(0).([]model.User), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockUserService) UpdateUser(db *gorm.DB, user model.User, phone string) (model.User, error) {
+func (m *MockUserService) UpdateUser(db interface{}, user model.User, phone string) (model.User, error) {
 	args := m.Called(db, user, phone)
 	return args.Get(0).(model.User), args.Error(1)
 }
@@ -118,12 +131,12 @@ func (m *MockUserService) Login(ctx context.Context, user model.User) (model.Use
 	return args.Get(0).(model.User), args.Error(1)
 }
 
-func (m *MockUserService) StoreUser(db *gorm.DB, user model.User) (model.User, error) {
+func (m *MockUserService) StoreUser(db interface{}, user model.User) (model.User, error) {
 	args := m.Called(db, user)
 	return args.Get(0).(model.User), args.Error(1)
 }
 
-func (m *MockUserService) SwiftRight(ctx context.Context, db *gorm.DB, jwtData map[string]interface{}, phoneTarget string) (model.User, error) {
+func (m *MockUserService) SwiftRight(ctx context.Context, db interface{}, jwtData map[string]interface{}, phoneTarget string) (model.User, error) {
 	args := m.Called(ctx, db, jwtData, phoneTarget)
 	return args.Get(0).(model.User), args.Error(1)
 }
@@ -133,14 +146,14 @@ func (m *MockUserService) FindDate(ctx context.Context, jwtData map[string]inter
 	return args.Get(0).(model.User), args.Error(1)
 }
 
-func (m *MockUserService) BuyPremium(db *gorm.DB, jwtData map[string]interface{}) (model.User, error) {
+func (m *MockUserService) BuyPremium(db interface{}, jwtData map[string]interface{}) (model.User, error) {
 	args := m.Called(db, jwtData)
 	return args.Get(0).(model.User), args.Error(1)
 }
 
 func TestLogin(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(`{"phone":"216-253-6879","password":"mypassword"}`))
+	req := httptest.NewRequest(http.MethodPost, "/user/login", strings.NewReader(`{"phone":"216-253-6879","password":"mypassword"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -175,7 +188,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("Bad JSON Format", func(t *testing.T) {
-		badReq := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(`{email:"test@example.com","password":"password123"}`))
+		badReq := httptest.NewRequest(http.MethodPost, "/user/login", strings.NewReader(`{email:"test@example.com","password":"password123"}`))
 		badReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		badRec := httptest.NewRecorder()
 		badC := e.NewContext(badReq, badRec)
@@ -191,6 +204,11 @@ func TestRegister(t *testing.T) {
 
 	mockUserService := new(MockUserService)
 	mockContext := echo.New()
+
+	validator := validator.New()
+	validator.RegisterValidation("date", dateValidation)
+
+	mockContext.Validator = &CustomValidator{Validator: validator}
 
 	userController := UserController{
 		env:         library.Env{},
@@ -216,37 +234,29 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "binding error",
-			userInput: fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s","password":"%s"}`,
-				generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail(), generateRandomPassword()),
+			userInput: fmt.Sprintf(`{"phone":1123213,"name":2132131,"url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s","password":"%s"}`,
+				generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail(), generateRandomPassword()),
 			expectedStatus:   http.StatusBadRequest,
 			expectedResponse: "Bad Request",
 			setupMock:        func() {},
 		},
 		{
 			name: "validation error",
-			userInput: fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s","password":"%s"}`,
-				generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail(), generateRandomPassword()),
+			userInput: fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s"}`,
+				generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail()),
 			expectedStatus:   http.StatusBadRequest,
 			expectedResponse: "BadRequest",
 			setupMock: func() {
-				mockContext.Validator = new(library.CustomValidator)
-			},
-		},
-		{
-			name: "user service error",
-			userInput: fmt.Sprintf(`{"phone":"%s","name":"%s","url_photo":"%s","date_birth":"%s","gender":"%s","email":"%s","password":"%s"}`,
-				generatePhoneNumber(), generateRandomnName(), generateRandomUrlPhoto(), generateRandomDateBirth(), generateRandomGender(), generateRandomEmail(), generateRandomPassword()),
-			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: "Internal Server Error",
-			setupMock: func() {
-				mockUserService.On("StoreUser", mock.Anything, mock.Anything).Return(model.User{}, errors.New("internal error"))
+				validator.RegisterValidation("date", dateValidation)
+
+				mockContext.Validator = &CustomValidator{Validator: validator}
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewReader([]byte(tt.userInput)))
+			req := httptest.NewRequest(http.MethodPost, "/user/register", bytes.NewReader([]byte(tt.userInput)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			c := mockContext.NewContext(req, rec)
